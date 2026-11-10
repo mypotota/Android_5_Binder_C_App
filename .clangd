@@ -1,0 +1,15 @@
+# clangd 配置文件：为这个 Binder C 项目提供代码跳转/补全/诊断支持
+# clangd 会自动读取项目根目录下的 .clangd
+
+CompileFlags:
+  # 所有源文件共享的编译选项（对应 Makefile 中的编译规则）
+  Add:
+    - "-I"           # include 目录（linux/binder.h, private/*.h）
+    - "include"
+    - "-I"           # 根目录的 binder.h / test_server.h
+    - "."
+    - "-DBINDER_IPC_32BIT=1"  # 使用 32 位 binder 协议（定义在 linux/binder.h）
+    - "-std=gnu99"   # C99 标准 + GNU 扩展
+
+# 同时也生成一份 compile_commands.json，方便 clangd 更精确匹配
+# （某些 IDE/场景下 clangd 会优先用 compile_commands.json 而非本文件）

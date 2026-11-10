@@ -35,6 +35,10 @@
 /* 前置声明：从 binder_transaction_data 初始化 binder_io 结构 */
 void bio_init_from_txn(struct binder_io *io, struct binder_transaction_data *txn);
 
+/* 前置声明：解析 binder 驱动返回的命令流 */
+int binder_parse(struct binder_state *bs, struct binder_io *bio,
+                 uintptr_t ptr, size_t size, binder_handler func);
+
 #if TRACE
 /**
  * @brief 以十六进制和 ASCII 形式输出数据内容
@@ -357,11 +361,12 @@ struct binder_thread_desc {
 
 /**
  * @brief 新线程入口函数：包装 binder_thread_loop
- * @param btd 线程描述结构指针
+ * @param arg 指向 binder_thread_desc 的 void* 参数（pthread_create 要求）
  * @return 返回 NULL（线程正常退出时）
  */
-static void * binder_thread_routine(struct binder_thread_desc *btd)
+static void * binder_thread_routine(void *arg)
 {
+	struct binder_thread_desc *btd = (struct binder_thread_desc *) arg;
 	binder_thread_loop(btd->bs, btd->func);
 	return NULL;
 }

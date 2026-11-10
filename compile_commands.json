@@ -1,0 +1,50 @@
+[
+  {
+    "file": "binder.c",
+    "directory": ".",
+    "arguments": [
+      "clang",
+      "-DBINDER_IPC_32BIT=1",
+      "-I", "include",
+      "-I", ".",
+      "-std=gnu99",
+      "-c", "binder.c"
+    ]
+  },
+  {
+    "file": "service_manager.c",
+    "directory": ".",
+    "arguments": [
+      "clang",
+      "-DBINDER_IPC_32BIT=1",
+      "-I", "include",
+      "-I", ".",
+      "-std=gnu99",
+      "-c", "service_manager.c"
+    ]
+  },
+  {
+    "file": "test_client.c",
+    "directory": ".",
+    "arguments": [
+      "clang",
+      "-DBINDER_IPC_32BIT=1",
+      "-I", "include",
+      "-I", ".",
+      "-std=gnu99",
+      "-c", "test_client.c"
+    ]
+  },
+  {
+    "file": "test_server.c",
+    "directory": ".",
+    "arguments": [
+      "clang",
+      "-DBINDER_IPC_32BIT=1",
+      "-I", "include",
+      "-I", ".",
+      "-std=gnu99",
+      "-c", "test_server.c"
+    ]
+  }
+]
