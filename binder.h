@@ -11,13 +11,13 @@ struct binder_state;
 
 struct binder_io
 {
-    char *data;            /* pointer to read/write from */
-    binder_size_t *offs;   /* array of offsets */
-    size_t data_avail;     /* bytes available in data buffer */
-    size_t offs_avail;     /* entries available in offsets array */
+    char *data;            /* 用于读/写的指针 */
+    binder_size_t *offs;   /* 偏移量数组 */
+    size_t data_avail;     /* 数据缓冲区中的可用字节数 */
+    size_t offs_avail;     /* 偏移量数组中的可用条目数 */
 
-    char *data0;           /* start of data buffer */
-    binder_size_t *offs0;  /* start of offsets buffer */
+    char *data0;           /* 数据缓冲区起始位置 */
+    binder_size_t *offs0;  /* 偏移量缓冲区起始位置 */
     uint32_t flags;
     uint32_t unused;
 };
@@ -27,13 +27,13 @@ struct binder_death {
     void *ptr;
 };
 
-/* the one magic handle */
+/* 一个神奇的句柄 */
 #define BINDER_SERVICE_MANAGER  0U
 
 #define SVC_MGR_NAME "android.os.IServiceManager"
 
 enum {
-    /* Must match definitions in IBinder.h and IServiceManager.h */
+    /* 必须与 IBinder.h 和 IServiceManager.h 中的定义匹配 */
     PING_TRANSACTION  = B_PACK_CHARS('_','P','N','G'),
     SVC_MGR_GET_SERVICE = 1,
     SVC_MGR_CHECK_SERVICE,
@@ -49,22 +49,21 @@ typedef int (*binder_handler)(struct binder_state *bs,
 struct binder_state *binder_open(size_t mapsize);
 void binder_close(struct binder_state *bs);
 
-/* initiate a blocking binder call
- * - returns zero on success
+/* 发起阻塞式 binder 调用
+ * - 成功返回零
  */
 int binder_call(struct binder_state *bs,
                 struct binder_io *msg, struct binder_io *reply,
                 uint32_t target, uint32_t code);
 
-/* release any state associate with the binder_io
- * - call once any necessary data has been extracted from the
- *   binder_io after binder_call() returns
- * - can safely be called even if binder_call() fails
+/* 释放与 binder_io 关联的任何状态
+ * - 在 binder_call() 返回后，一旦从 binder_io 中提取了所有必要数据后调用
+ * - 即使 binder_call() 失败也可以安全调用
  */
 void binder_done(struct binder_state *bs,
                  struct binder_io *msg, struct binder_io *reply);
 
-/* manipulate strong references */
+/* 操作强引用 */
 void binder_acquire(struct binder_state *bs, uint32_t target);
 void binder_release(struct binder_state *bs, uint32_t target);
 
@@ -74,10 +73,7 @@ void binder_loop(struct binder_state *bs, binder_handler func);
 
 int binder_become_context_manager(struct binder_state *bs);
 
-/* allocate a binder_io, providing a stack-allocated working
- * buffer, size of the working buffer, and how many object
- * offset entries to reserve from the buffer
- */
+/* 分配一个 binder_io，提供栈分配的工作缓冲区、工作缓冲区大小，以及要从缓冲区预留多少个对象偏移条目 */
 void bio_init(struct binder_io *bio, void *data,
            size_t maxdata, size_t maxobjects);
 

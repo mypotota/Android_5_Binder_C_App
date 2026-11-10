@@ -15,6 +15,18 @@
 
 
 
+/**
+ * @brief 通过 Service Manager 查找指定名称的服务并获取其句柄
+ * 
+ * 1. 构造 binder_io，调用 SVC_MGR_CHECK_SERVICE
+ * 2. 从 reply 中读取返回的 handle
+ * 3. 对 handle 执行 binder_acquire 增加引用计数
+ * 
+ * @param bs binder 状态
+ * @param target Service Manager 句柄（通常为 BINDER_SERVICE_MANAGER）
+ * @param name 服务名称（如 "hello"、"goodbye"）
+ * @return 成功返回服务句柄，失败返回 0
+ */
 uint32_t svcmgr_lookup(struct binder_state *bs, uint32_t target, const char *name)
 {
     uint32_t handle;
@@ -22,7 +34,7 @@ uint32_t svcmgr_lookup(struct binder_state *bs, uint32_t target, const char *nam
     struct binder_io msg, reply;
 
     bio_init(&msg, iodata, sizeof(iodata), 4);
-    bio_put_uint32(&msg, 0);  // strict mode header
+    bio_put_uint32(&msg, 0);  // 严格模式头
     bio_put_string16_x(&msg, SVC_MGR_NAME);
     bio_put_string16_x(&msg, name);
 
@@ -40,32 +52,47 @@ uint32_t svcmgr_lookup(struct binder_state *bs, uint32_t target, const char *nam
 }
 
 
+/* 全局 binder 状态和服务句柄，供全局函数使用 */
 struct binder_state *g_bs;
-uint32_t g_hello_handle;
-uint32_t g_goodbye_handle;
+uint32_t g_hello_handle;    /* hello 服务的句柄 */
+uint32_t g_goodbye_handle;  /* goodbye 服务的句柄 */
 
+/**
+ * @brief 调用 hello 服务的 sayhello() 方法（无参数）
+ * 
+ * 步骤：构造 binder_io → 写入严格模式头 → 写入接口名 → 发起调用 → 清理
+ * 对应服务端的 HELLO_SVR_CMD_SAYHELLO
+ */
 void sayhello(void)
 {
     unsigned iodata[512/4];
     struct binder_io msg, reply;
 
-	/* ����binder_io */
+	/* 构造binder_io */
     bio_init(&msg, iodata, sizeof(iodata), 4);
-    bio_put_uint32(&msg, 0);  // strict mode header
+    bio_put_uint32(&msg, 0);  // 严格模式头
     bio_put_string16_x(&msg, "IHelloService");
 
-	/* ������� */
+	/* 放入参数 */
 
-	/* ����binder_call */
+	/* 调用binder_call */
     if (binder_call(g_bs, &msg, &reply, g_hello_handle, HELLO_SVR_CMD_SAYHELLO))
         return ;
 	
-	/* ��reply�н���������ֵ */
+	/* 从reply中解析出返回值 */
 
     binder_done(g_bs, &msg, &reply);
 	
 }
 
+/**
+ * @brief 调用 hello 服务的 sayhello_to(name) 方法
+ * 
+ * 对应服务端的 HELLO_SVR_CMD_SAYHELLO_TO
+ * 
+ * @param name 要打招呼的名字
+ * @return 服务端返回的计数结果，调用失败返回 0
+ */
 int sayhello_to(char *name)
 {
 	unsigned iodata[512/4];
@@ -73,19 +100,19 @@ int sayhello_to(char *name)
 	int ret;
 	int exception;
 
-	/* ����binder_io */
+	/* 构造binder_io */
 	bio_init(&msg, iodata, sizeof(iodata), 4);
-	bio_put_uint32(&msg, 0);  // strict mode header
+	bio_put_uint32(&msg, 0);  // 严格模式头
     bio_put_string16_x(&msg, "IHelloService");
 
-	/* ������� */
+	/* 放入参数 */
     bio_put_string16_x(&msg, name);
 
-	/* ����binder_call */
+	/* 调用binder_call */
 	if (binder_call(g_bs, &msg, &reply, g_hello_handle, HELLO_SVR_CMD_SAYHELLO_TO))
 		return 0;
 	
-	/* ��reply�н���������ֵ */
+	/* 从reply中解析出返回值 */
 	exception = bio_get_uint32(&reply);
 	if (exception)
 		ret = -1;
@@ -99,28 +126,40 @@ int sayhello_to(char *name)
 }
 
 
+/**
+ * @brief 调用 goodbye 服务的 saygoodbye() 方法（无参数）
+ * 对应服务端的 GOODBYE_SVR_CMD_SAYGOODBYE
+ */
 void saygoodbye(void)
 {
     unsigned iodata[512/4];
     struct binder_io msg, reply;
 
-	/* ����binder_io */
+	/* 构造binder_io */
     bio_init(&msg, iodata, sizeof(iodata), 4);
-    bio_put_uint32(&msg, 0);  // strict mode header
+    bio_put_uint32(&msg, 0);  // 严格模式头
     bio_put_string16_x(&msg, "IGoodbyeService");
 
-	/* ������� */
+	/* 放入参数 */
 
-	/* ����binder_call */
+	/* 调用binder_call */
     if (binder_call(g_bs, &msg, &reply, g_goodbye_handle, GOODBYE_SVR_CMD_SAYGOODBYE))
         return ;
 	
-	/* ��reply�н���������ֵ */
+	/* 从reply中解析出返回值 */
 
     binder_done(g_bs, &msg, &reply);
 	
 }
 
+/**
+ * @brief 调用 goodbye 服务的 saygoodbye_to(name) 方法
+ * 
+ * 对应服务端的 GOODBYE_SVR_CMD_SAYGOODBYE_TO
+ * 
+ * @param name 要告别的名字
+ * @return 服务端返回的计数结果，调用失败返回 0
+ */
 int saygoodbye_to(char *name)
 {
 	unsigned iodata[512/4];
@@ -128,19 +167,19 @@ int saygoodbye_to(char *name)
 	int ret;
 	int exception;
 
-	/* ����binder_io */
+	/* 构造binder_io */
 	bio_init(&msg, iodata, sizeof(iodata), 4);
-	bio_put_uint32(&msg, 0);  // strict mode header
+	bio_put_uint32(&msg, 0);  // 严格模式头
     bio_put_string16_x(&msg, "IGoodbyeService");
 
-	/* ������� */
+	/* 放入参数 */
     bio_put_string16_x(&msg, name);
 
-	/* ����binder_call */
+	/* 调用binder_call */
 	if (binder_call(g_bs, &msg, &reply, g_goodbye_handle, GOODBYE_SVR_CMD_SAYGOODBYE_TO))
 		return 0;
 	
-	/* ��reply�н���������ֵ */
+	/* 从reply中解析出返回值 */
 	exception = bio_get_uint32(&reply);
 	if (exception)
 		ret = -1;
@@ -157,10 +196,22 @@ int saygoodbye_to(char *name)
 
 
 
-/* ./test_client hello
+/* 用法：
+ * ./test_client hello
  * ./test_client hello <name>
  */
 
+/**
+ * @brief 测试客户端主函数
+ * 
+ * 使用流程：
+ * 1. 打开 binder 驱动
+ * 2. 通过 svcmgr_lookup 获取 goodbye 和 hello 服务的句柄
+ * 3. 根据命令行参数调用对应的服务方法
+ * 
+ * @param argc 参数个数
+ * @param argv 命令行参数：argv[1] = "hello" 或 "goodbye"，argv[2] = 可选的名字
+ */
 int main(int argc, char **argv)
 {
     int fd;
